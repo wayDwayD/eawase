@@ -134,6 +134,44 @@
   .dexrow .cell{border:2px solid var(--ink);border-radius:7px;background:#F2F7FB;padding:1px;line-height:0}
   .dexrow .cell.off .sp{filter:grayscale(1) brightness(1.8) contrast(.28);opacity:.5}
 
+  .dexrow .cell{cursor:pointer}
+  .dexrow .cell.done{border-color:#E0A100;background:#FFF6D6}
+  .dexbadges{display:flex;flex-wrap:wrap;gap:5px;margin:-3px 0 8px}
+  .dexbadges span{font-size:11px;background:#FFE9A0;border:2px solid #E0A100;border-radius:10px;padding:1px 7px}
+  .dexov{position:fixed;inset:0;z-index:48;display:none;place-items:center;padding:18px;
+    background:rgba(20,50,79,.62)}
+  .dexov.show{display:grid}
+  .dbox{position:relative;background:#fff;border:6px solid var(--ink);border-radius:30px;padding:16px 16px 14px;
+    width:100%;max-width:340px;text-align:center;animation:pop .35s cubic-bezier(.28,1.7,.5,1)}
+  .dbox .no{font-size:12px;color:var(--ink-soft);font-weight:500}
+  .dbox .th{display:inline-block;font-size:12px;background:#E8F2FF;border:2px solid var(--ink);
+    border-radius:10px;padding:1px 9px;margin:2px 0 6px}
+  .dbox .rare{display:inline-block;font-size:12px;color:#fff;background:#FF4E8E;border-radius:10px;
+    padding:2px 9px;margin-left:5px;vertical-align:1px}
+  .dbox .pic{width:min(62vw,230px);margin:4px auto 6px;border:4px solid var(--ink);border-radius:24px;
+    background:radial-gradient(circle,#FFFDF3,#EAF3FF);padding:8px;line-height:0}
+  .dbox .pic.unk .sp{filter:brightness(0) opacity(.28)}
+  .dbox .nm{font-size:25px;margin:2px 0}
+  .dbox .ds{font-size:14px;font-weight:500;color:var(--ink-soft);line-height:1.65;margin:0 0 10px;min-height:46px}
+  .dbox .nav{display:flex;gap:8px}
+  .dbox .nav button{flex:1;font:inherit;font-size:16px;cursor:pointer;color:var(--ink);padding:10px 4px;
+    border:3px solid var(--ink);border-radius:16px;background:#fff}
+  .dbox .nav button.cl{flex:2;background:var(--sun)}
+  .toast{position:fixed;left:50%;top:26%;z-index:60;pointer-events:none;opacity:0;
+    transform:translate(-50%,0);font-size:30px;white-space:nowrap;color:var(--ink);
+    -webkit-text-stroke:1px #fff;paint-order:stroke fill;text-shadow:0 3px 0 rgba(255,255,255,.9),0 5px 14px rgba(20,50,79,.3)}
+  .toast.go{animation:toast 1.15s ease-out forwards}
+  .toast.c3{color:#E8590C;font-size:38px}.toast.c4{color:#D6336C;font-size:46px}
+  .toast.gold{color:#C77700;font-size:32px}.toast.miss{color:#4A6B87;font-size:26px}
+  @keyframes toast{0%{opacity:0;transform:translate(-50%,16px) scale(.5)}
+    18%{opacity:1;transform:translate(-50%,0) scale(1.25)}30%{transform:translate(-50%,0) scale(1)}
+    80%{opacity:1}100%{opacity:0;transform:translate(-50%,-26px) scale(1)}}
+  .fw{position:fixed;z-index:46;pointer-events:none;font-size:26px;left:50%;top:42%}
+  .mc.gold .b{border-color:#FFB300;box-shadow:0 0 0 3px #FFE07A inset,0 0 14px #FFD84D}
+  .mc.gold .b::after{content:"✨";position:absolute;top:1px;right:3px;font-size:18px;animation:tw .8s ease-in-out infinite alternate}
+  @keyframes tw{to{transform:scale(1.35) rotate(18deg)}}
+  .infobar{font-size:12px;font-weight:500;color:var(--ink-soft);line-height:1.7;margin:-2px 0 8px}
+  .infobar b{color:var(--ink);font-weight:800}
   .bar{display:flex;gap:9px;margin-top:14px}
   .bar button{flex:1;font:inherit;font-size:14px;cursor:pointer;color:var(--ink);padding:11px 4px;
     white-space:nowrap;background:rgba(255,255,255,.8);border:3px solid var(--ink);border-radius:18px}
@@ -196,6 +234,7 @@
   <div class="stage">
     <div class="view on" id="viewWheel">
       <h2 id="wheelTtl">ルーレットを まわそう</h2>
+      <div class="infobar" id="infoBar"></div>
       <div class="wheelbox">
         <div class="needle"></div>
         <svg class="wheel" viewBox="0 0 300 300" aria-hidden="true">
@@ -224,6 +263,7 @@
 
   <div class="dex">
     <h2 id="dexTitle">ずかん</h2>
+    <div class="dexbadges" id="dexBadge"></div>
     <div class="dexrow" id="dexRow"></div>
   </div>
 
@@ -242,6 +282,18 @@
     <p class="mnote" id="ovMnote"></p>
     <div class="newmons" id="ovMons"></div>
     <button id="ovBtn"></button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="dexov" id="dexOv">
+  <div class="dbox">
+    <div class="no" id="dxNo"></div>
+    <div><span class="th" id="dxTh"></span><span class="rare" id="dxRare" hidden>★ レア</span></div>
+    <div class="pic" id="dxPic"></div>
+    <div class="nm" id="dxNm"></div>
+    <p class="ds" id="dxDs"></p>
+    <div class="nav"><button id="dxPrev">◀</button><button class="cl" id="dxClose">とじる</button><button id="dxNext">▶</button></div>
   </div>
 </div>
 
@@ -355,7 +407,7 @@ const KIDCOL=['#FF7BA9','#3F9BFF'];
 let cfg={names:['おにいちゃん','いもうと'],mode:['normal','easy'],cap:[9,6],sound:true};
 let st={lv:[1,1],hp:[null,null],tidy:[0,0],dex:[[],[]],clears:[0,0],board:[null,null],pend:[null,null]};
 let cur=0, edit=0;
-let view='wheel', spinning=false, angles=[0,0], hintOn=false;
+let view='wheel', spinning=false, angles=[0,0], hintOn=false, goldM=null, combo=0;
 /* ルーレットの けっか（かたづけ待ち）は こどもごとに のこす */
 const getP=()=>(st.pend&&st.pend[cur]!=null)?st.pend[cur]:null;
 const setP=v=>{if(!Array.isArray(st.pend))st.pend=[null,null];st.pend[cur]=v;};
@@ -366,6 +418,146 @@ const modeOf=k=>MODES.find(m=>m.id===cfg.mode[k])||MODES[1];
 const capOf=k=>cfg.cap[k]||9;
 const lvOf=k=>Math.min(st.lv[k]||1,capOf(k));
 const livesFor=(k,lv)=>modeOf(k).lives[Math.min(lv,9)-1];
+/* ── モンスターの なまえ・とくちょう（1ぎょう＝1テーマ、10れつめ＝レア） ── */
+const THEMES=[
+  {n:'どうぶつ',ico:'🐾'},{n:'みず・うみ',ico:'🌊'},{n:'もり',ico:'🌳'},{n:'ほのお',ico:'🔥'},
+  {n:'そら',ico:'☁️'},{n:'おかし',ico:'🍰'},{n:'のりもの',ico:'🚗'},{n:'むし',ico:'🐞'},
+  {n:'おばけ',ico:'👻'},{n:'うちゅう',ico:'🚀'},{n:'こおり',ico:'❄️'},{n:'ふしぎ',ico:'🔮'}
+];
+const MON=[
+ /* 0 どうぶつ */
+ ['モチネコ','おもちみたいに ふわふわ。だっこされるのが だいすき'],
+ ['コロクマ','ほっぺが まっかな こぐま。はちみつの においが すき'],
+ ['ポヨウサ','ながい みみを ぷるぷる。ジャンプが とくい'],
+ ['ワンダマ','しっぽを ぶんぶん！ だれとでも すぐ なかよし'],
+ ['フカリス','おおきな しっぽが じまん。どんぐりを だいじに もつよ'],
+ ['ミルクヒツジ','もこもこの けで ぽかぽか。ねむくなると かおが あおくなる'],
+ ['ハムタロ','ほっぺに たねを ためる くいしんぼう'],
+ ['ペタペンギン','よちよち あるく まるい おなか。すべるのが すき'],
+ ['ブタポン','おおきな はなで いいにおいを みつけるよ'],
+ ['ミライライオン','おはなの たてがみと きんの かんむり。もりの おうさま'],
+ /* 1 みず・うみ */
+ ['シズクン','みずの しずくの こ。あめの ひに うまれるよ'],
+ ['アワクラゲ','ふわふわ うかぶ。あわを ぷくぷく ふくよ'],
+ ['ポコカエル','あたまの あわが ぽこん！ ジャンプで はねるよ'],
+ ['タコリン','はずかしがりやで すぐ ほっぺが ぴんく'],
+ ['ヒレサメ','おおきな ひれの サメ。こわくないよ、やさしいよ'],
+ ['カメノコ','かいがらの こうら。のんびり およぐよ'],
+ ['プカクジラ','しおふきが ハートの かたち。うたが じょうず'],
+ ['ヒトデン','きらきら ほしの かたち。うみの そこで ひかるよ'],
+ ['サンゴロン','あたまの サンゴが じまん。さかなの ともだち'],
+ ['ウミノオウ','しんじゅの かんむりの うみの おうさま'],
+ /* 2 もり */
+ ['ハッパム','あたまの ふたばが ゆらゆら。ひなたぼっこが すき'],
+ ['キノコロ','あかい ぼうしの キノコ。あめが だいすき'],
+ ['リーフウサ','はっぱの みみで かぜを かんじるよ'],
+ ['ドングリン','どんぐりの ぼうしを かぶった リス'],
+ ['ツタヘビ','つたと おはなを まとった やさしい へび'],
+ ['ハナノコ','おひさまを むいて にこにこ さいているよ'],
+ ['モリフクロウ','はっぱの はねの もりの ものしり'],
+ ['イチゴロン','あまずっぱい かおり。つぶつぶが チャームポイント'],
+ ['タケノコン','にょきにょき そだつ。かわを むくと ぴかぴか'],
+ ['モリノヌシ','おはなと ひかる みの つのを もつ もりの かみさま'],
+ /* 3 ほのお */
+ ['ヒノタネ','ちいさな ほのおの こ。あたたかくて ほっとするよ'],
+ ['ポカポカ','ちいさな たいよう。いっしょに いると ぽかぽか'],
+ ['マグマロン','とろ〜り あつい マグマの こ。ぷるぷる ゆれるよ'],
+ ['ヤキイモン','ほかほかの やきいも。いいにおいが するよ'],
+ ['ロウソクン','あたまの ひを まもる やさしい こ'],
+ ['ヒバナキツネ','しっぽが ほのお！ かけっこが はやいよ'],
+ ['ストーブン','おなかが あったかい ストーブ。さむい ひの ヒーロー'],
+ ['カエンドリ','ほのおの はねで ぱたぱた とぶよ'],
+ ['ホノオネコ','みみの さきが ひの ねこ。ひなたが すき'],
+ ['ヒノトリ','きんの ほのおを まとう ひのとり。ねがいを かなえるよ'],
+ /* 4 そら */
+ ['モクモク','ちいさな くも。ふわふわ ながれて いくよ'],
+ ['ヒヨコロ','まんまるの ひよこ。ぴよぴよ ついてくるよ'],
+ ['ニジクモ','あたまに にじを のせた くも'],
+ ['カゼフク','かざぐるまの はねで くるくる まわるよ'],
+ ['スズメッコ','ふくらんだ すずめ。ちゅんちゅん ごあいさつ'],
+ ['フワフクロウ','しろい はねの フクロウ。よるの そらが すき'],
+ ['アメフラ','あめくもと てるてるぼうず。はれを よぶよ'],
+ ['カミナリン','ごろごろ ぴかっ！ でも ほんとは あまえんぼう'],
+ ['ハネウサギ','てんしの はねの うさぎ。ほしを だいじに もつよ'],
+ ['ソラノテンシ','ひかりの わっかを もつ そらの おうじょさま'],
+ /* 5 おかし */
+ ['プリンちゃん','ぷるぷる ゆれる プリン。うえの さくらんぼが じまん'],
+ ['ドーナツン','まんなかに あなが あるよ。ころころ ころがるよ'],
+ ['アイスクリン','ひんやり ソフトクリーム。とけちゃうのは ひみつ'],
+ ['カップケーキ','さくらんぼ のせた ケーキ。おたんじょうびが すき'],
+ ['キャンディル','ぐるぐる にじいろ キャンディ。リボンが かわいい'],
+ ['タマゴロン','からを かぶった ひよこ。もうすぐ うまれるよ'],
+ ['オニギリン','のりが ぴったり おにぎり。ぱくっと たべたく なるよ'],
+ ['ポップコーン','ぽんぽん はじけて おおよろこび'],
+ ['ハチミツン','あまい はちみつの びんの なか。ミツバチが ねてるよ'],
+ ['ケーキノオウ','いちごの かんむりの ケーキの おうさま'],
+ /* 6 のりもの */
+ ['ネジロボ','あたまが ネジの ロボット。なんでも なおすよ'],
+ ['ブーブン','あかい くるま。ぶーぶー はしるよ'],
+ ['デンシャン','みどりの でんしゃ。しゅっぱつ しんこう！'],
+ ['ヒコーキン','しろい ひこうき。くもの うえまで ひゅーん'],
+ ['ドリルン','あたまの ドリルで あなを ほるよ'],
+ ['ショベルン','おおきな うでで おもちゃを すくうよ'],
+ ['ハグルマ','くるくる まわる はぐるま。ぴったり かみあうよ'],
+ ['ロケッコ','ごー！ ほのおを ふいて おほしさまへ'],
+ ['ラジオン','アンテナで すてきな おんがくを つかまえるよ'],
+ ['キラメカ','むねの ハートが ひかる ロボットの おうさま'],
+ /* 7 むし */
+ ['テントン','あかい せなかに くろい てん。ちいさな ヒーロー'],
+ ['チョウチョン','にじいろの はねで ひらひら おどるよ'],
+ ['イモムシン','もぐもぐ はっぱを たべる。いつか ちょうちょに なるよ'],
+ ['ミツバチン','ぶーん！ はなから はなへ おてつだい'],
+ ['カブトン','つよい つのを もつ カブトムシ。ちからもち'],
+ ['クワガタン','あおい おおきな はさみ。やさしい こころ'],
+ ['ホタルン','おしりが ぴかっと ひかる。よるの ともだち'],
+ ['トンボリ','すきとおった はねで すいーっと とぶよ'],
+ ['カマキリン','おおきな かま。でも みんなを まもる ヒーロー'],
+ ['ニジチョウ','にじいろに かがやく ちょうちょの じょおう'],
+ /* 8 おばけ */
+ ['オバケット','まほうつかいの おばけ。ランタンで みちを てらすよ'],
+ ['ヒトダマ','あおい ひかりの おばけ。ふわふわ ついてくるよ'],
+ ['ネコシーツ','ねこの ずきんの おばけ。ちょうちょむすびが すき'],
+ ['ネムネム','つきの うえで すやすや。ゆめを みているよ'],
+ ['ヤミノコ','むらさきの ほのおの こ。ほんとは はずかしがりや'],
+ ['ワッカン','あたまに ひかりの わっか。てんしの おばけ'],
+ ['オバケハウス','おばけの おうち。なかから みんなが のぞいてるよ'],
+ ['ハートオバケ','ハートを だいじに だく。はねの おばけ'],
+ ['カボチャン','かぼちゃの ぼうし。キャンディを もっているよ'],
+ ['ユメノヒメ','ほしの ぼうと かんむりの おばけの おひめさま'],
+ /* 9 うちゅう */
+ ['ホシコロ','まほうの ぼうしの ほし。ねがいごとを きいてくれるよ'],
+ ['ワクセイン','わっかの ある ちいさな わくせい。ぐるぐる まわるよ'],
+ ['ウチュウヒコ','うちゅうふくの こ。ふわふわ ういてるよ'],
+ ['UFOン','ぴかぴか ひかる えんばん。ほしの ひかりを だすよ'],
+ ['ギンガネコ','ほしの もようの くろねこ。つきが だいすき'],
+ ['ホウキボシ','しっぽが きらきら ながれぼし。ねがいを のせて とぶよ'],
+ ['サテライン','そらを ぐるぐる まわる ロボット。ちきゅうを みまもるよ'],
+ ['ブラックン','ふしぎな うずの なか。なんでも すいこむ…かも？'],
+ ['ツキノコ','ほしの ついた つきの いし。でこぼこの ともだち'],
+ ['ギンガノオウ','ぎんがの マントの おうさま。わくせいの つえを もつよ'],
+ /* 10 こおり */
+ ['ユキダルマ','ぼうしと マフラーの ゆきだるま。ゆきの ひに あえるよ'],
+ ['コオリギツネ','こおりの ほうせきを つけた きつね'],
+ ['ペンギンキッズ','ニットぼうの ペンギン。ぽかぽか あったかそう'],
+ ['アザラシロン','まるい ゆきだまの アザラシ。ごろんと ねころぶよ'],
+ ['クリスタルン','きらきら こおりの つの。ひかりを はね かえすよ'],
+ ['イエティン','もこもこ ゆきの けむくじゃら。ほんとは やさしいよ'],
+ ['ユキクラゲ','ゆきの けっしょうの かさを かぶった クラゲ'],
+ ['イグルン','ゆきの おうち。ちいさな はたが ゆれてるよ'],
+ ['ユキフクロウ','マフラーの ゆきの フクロウ。ふゆの そらを とぶよ'],
+ ['ユキノジョオウ','こおりの かんむりと つえ。ゆきの じょおうさま'],
+ /* 11 ふしぎ */
+ ['ツキタマ','すいしょうだまの なか。おほしさまを みているよ'],
+ ['ランタンオバケ','まほうの ぼうしの おばけ。ランタンの ひかりが すき'],
+ ['コケロン','コケと おはなの いわの こ。ゆっくり うごくよ'],
+ ['クリスタルドラ','にじいろの はねの こおりの ドラゴン'],
+ ['ヨルノコ','ひとつめの くろい ふしぎな こ。よるに あえるよ'],
+ ['ムラサキキノコ','むらさきの かさの キノコ。きらきら ひかるよ'],
+ ['コオリモコ','こおりの かんむりの もこもこ。マフラーが ぽかぽか'],
+ ['ハナカンムリ','はなの かんむりの ようせい。はっぱの はねが あるよ'],
+ ['マホウノホン','まほうの ほん。ページが ひらひら おどるよ'],
+ ['ヒカリノテンシ','きんの かんむりと つばさ。みんなを てらす おうじょさま']
+];
 const sp=(i,extra)=>`<span class="sp" style="--c:${i%10};--r:${Math.floor(i/10)}${extra||''}"></span>`;
 
 /* ── おと ── */
@@ -386,6 +578,25 @@ function tone(f,t0,dur=.1,type='triangle',vol=.22){
 function ticks(dur,n=28){for(let i=0;i<n;i++)tone(1250,dur*Math.pow(i/n,.42),.035,'square',.11);}
 function chime(a){a.forEach((f,i)=>tone(f,i*.12,.24));}
 function buzz(p){try{navigator.vibrate&&navigator.vibrate(p);}catch(e){}}
+let toastT=null;
+function toast(txt,cls){
+  const t=$('toast');t.className='toast';t.textContent=txt;void t.offsetWidth;
+  t.className='toast go '+(cls||'');
+}
+function fireworks(n=26){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const em=['✨','⭐','🎉','💖','🌟','🎊'];
+  for(let i=0;i<n;i++){
+    const e=document.createElement('div');e.className='fw';e.textContent=em[i%em.length];
+    document.body.appendChild(e);
+    const ang=Math.random()*Math.PI*2, dist=110+Math.random()*190;
+    e.animate([{transform:'translate(-50%,-50%) scale(.3)',opacity:1},
+      {transform:`translate(calc(-50% + ${Math.cos(ang)*dist}px),calc(-50% + ${Math.sin(ang)*dist}px)) scale(${1+Math.random()})`,opacity:1,offset:.7},
+      {transform:`translate(calc(-50% + ${Math.cos(ang)*dist*1.1}px),calc(-50% + ${Math.sin(ang)*dist*1.1+30}px)) scale(.6)`,opacity:0}],
+      {duration:1000+Math.random()*500,delay:Math.random()*250,easing:'cubic-bezier(.2,.8,.3,1)'}).onfinish=()=>e.remove();
+  }
+}
+const doneRows=a=>{const r=[];for(let t=0;t<THEMES.length;t++){let ok=true;for(let k=0;k<10;k++)if(!a.includes(t*10+k)){ok=false;break;}if(ok)r.push(t);}return r;};
 function confetti(n){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const cols=['#FF7BA9','#3F9BFF','#FFB33C','#7BC98D','#FFF','#FF4E8E'];
@@ -448,11 +659,17 @@ function spin(){
   const base=angles[cur]||0, now=((base%360)+360)%360;
   const want=((270-seg.mid)%360+360)%360;
   const jitter=(Math.random()-.5)*Math.min(seg.sweep*.55,13);
-  angles[cur]=base+360*4+((want-now+360)%360)+jitter;
+  /* ときどき えんしゅつが かわる（けっかは おなじ しくみ） */
+  const vr=Math.random(), kind=vr<.12?'rev':(vr<.30?'slow':'norm');
+  const dur=kind==='slow'?5.4:3.2;
+  if(kind==='rev')angles[cur]=base-(360*4+((now-want+360)%360))+jitter;
+  else angles[cur]=base+360*(kind==='slow'?6:4)+((want-now+360)%360)+jitter;
   const rot=$('rot');
-  rot.style.transition='transform 3.2s cubic-bezier(.13,.72,.16,1)';
+  rot.style.transition=`transform ${dur}s `+(kind==='slow'?'cubic-bezier(.08,.6,.12,1)':'cubic-bezier(.13,.72,.16,1)');
   rot.style.transform=`rotate(${angles[cur]}deg)`;
-  ticks(3.2);
+  ticks(dur);
+  if(kind==='rev')toast('ぎゃくまわり！？','c3');
+  if(kind==='slow')setTimeout(()=>toast('どっち…！？','c3'),dur*1000-1600);
   setTimeout(()=>{
     spinning=false;
     const was=cur;cur=kid;setP(seg.t.b?{n:seg.t.n,b:seg.t.b}:seg.t.n);cur=was;
@@ -460,7 +677,7 @@ function spin(){
     if(cur===kid)showResult();
     chime(seg.t.b?[523,659,784,1046]:[523,784]);
     if(seg.t.b)confetti(40);
-  },3350);
+  },dur*1000+150);
 }
 /* ルーレットの けっかを がめんに だす（こうたい してから もどっても のこる） */
 function showResult(){
@@ -483,7 +700,13 @@ async function cleaned(){
   const p=getP();
   if(p==null)return;
   const n=typeof p==='object'?p.n:p, bonus=typeof p==='object'?p.b:null;
+  const tb=(st.tidy[0]||0)+(st.tidy[1]||0);
   st.tidy[cur]+=n;
+  const ta=(st.tidy[0]||0)+(st.tidy[1]||0);
+  if(Math.floor(ta/100)>Math.floor(tb/100)){
+    fireworks(40);chime([784,988,1175,1568,1976]);
+    toast(`きょうだいで ${Math.floor(ta/100)*100}こ！ すごい！`,'gold');
+  }
   setP(null);
   showResult();
   st.hp[cur]=livesFor(cur,lvOf(cur))+(bonus==='heart'?1:0);
@@ -493,16 +716,20 @@ async function cleaned(){
 }
 
 /* ── えあわせ ── */
+const luckyRow=()=>{const d=new Date();return (d.getFullYear()*372+d.getMonth()*31+d.getDate())%THEMES.length;};
 function pickMons(pairs){
   const got=st.dex[cur]||[];
   const fresh=[],old=[];
   for(let i=0;i<TOTAL;i++)(got.includes(i)?old:fresh).push(i);
   const shuf=a=>{const b=a.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
-  const pool=shuf(fresh).concat(shuf(old));
+  let pool=shuf(fresh).concat(shuf(old));
+  /* きょうの ラッキーテーマの まだ もってない こを 2ひきまで ひろいやすく */
+  const lk=shuf(fresh.filter(m=>Math.floor(m/10)===luckyRow())).slice(0,2);
+  if(lk.length)pool=lk.concat(pool.filter(m=>!lk.includes(m)));
   return pool.slice(0,pairs);
 }
 function saveBoard(){
-  st.board[cur]={lv:lvOf(cur),mons:boardMons.slice(),cards:board.map(c=>({m:c.m,got:c.got}))};
+  st.board[cur]={lv:lvOf(cur),mons:boardMons.slice(),gold:goldM,cards:board.map(c=>({m:c.m,got:c.got}))};
   saveNow('ea:st',st);
 }
 function savedPairs(k){
@@ -526,11 +753,16 @@ function startBoard(bonus){
     for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
     board=deck.map(m=>({m,got:false}));
   }
-  open=[];lock=false;
+  open=[];lock=false;combo=0;
   /* ボーナス */
   if(bonus==='rare'&&!injectRare()){            /* もう ぜんぶ もっていたら かわりに ハート+1 */
     st.hp[cur]=livesFor(cur,lvOf(cur))+1;
   }
+  /* ごほうびペア：1くみだけ、めくると ✨ が ひかる。そろえると ごほうび */
+  const hasKey=canResume&&('gold' in sv);
+  goldM=hasKey?sv.gold:null;
+  const unm=boardMons.filter(m=>board.some(c=>c.m===m&&!c.got));
+  if(!hasKey||(goldM!=null&&!unm.includes(goldM)))goldM=(unm.length>=3&&!hasKey)?unm[Math.floor(Math.random()*unm.length)]:(unm.includes(goldM)?goldM:null);
   saveBoard();
   view='board';render();
   if(bonus==='hint')showHint();
@@ -550,10 +782,10 @@ function injectRare(){
   return true;
 }
 /* ヒント：そろっていない カードを 3びょう みせる */
-function showHint(){
+function showHint(sec){
   hintOn=true;lock=true;renderBoard();
   tone(880,0,.1);tone(1175,.12,.14);
-  setTimeout(()=>{hintOn=false;lock=false;renderBoard();},3000);
+  setTimeout(()=>{hintOn=false;lock=false;renderBoard();},(sec||3)*1000);
 }
 function renderBoard(){
   const lv=lvOf(cur), n=board.length;
@@ -562,7 +794,7 @@ function renderBoard(){
   $('board').style.setProperty('--cols',COLS[n]||5);
   $('board').innerHTML=board.map((c,i)=>{
     const isOpen=c.got||open.includes(i);
-    return `<button class="mc ${c.got?'got':((open.includes(i)||hintOn)?'up':'')}" data-i="${i}" ${c.got?'disabled':''}>
+    return `<button class="mc ${c.got?'got':((open.includes(i)||hintOn)?'up':'')} ${(c.m===goldM&&!c.got)?'gold':''}" data-i="${i}" ${c.got?'disabled':''}>
       <div class="in"><div class="f">?</div><div class="b">${sp(c.m)}</div></div></button>`;
   }).join('');
 }
@@ -589,9 +821,18 @@ async function tapCard(i){
   const [a,b]=open;
   if(board[a].m===board[b].m){
     setTimeout(async()=>{
+      const wasGold=(board[a].m===goldM);
       board[a].got=true;board[b].got=true;open=[];lock=false;
+      combo++;
+      if(wasGold)goldM=null;
       saveBoard();
       chime([880,1174]);buzz([25]);
+      if(combo>=2){
+        tone(1174+combo*90,.1,.12);tone(1568+combo*90,.2,.16);
+        if(!(board.every(c=>c.got)))toast(`${combo}れんぞく！`,combo>=4?'c4':(combo>=3?'c3':''));
+        if(combo>=3)confetti(Math.min(10+combo*6,40));
+      }
+      if(wasGold&&!board.every(c=>c.got))goldReward();
       renderBoard();
       if(board.every(c=>c.got))await clearBoard();
     },420);
@@ -599,6 +840,7 @@ async function tapCard(i){
     const el=document.querySelectorAll('.mc');
     if(el[a])el[a].classList.add('bad');if(el[b])el[b].classList.add('bad');
     tone(300,0,.16,'square',.2);tone(220,.14,.22,'square',.18);buzz([60,50,60]);
+    combo=0;toast(['おしい！','もうちょい！','あっ！','つぎは いけるよ！'][Math.floor(Math.random()*4)],'miss');
     setTimeout(async()=>{
       open=[];lock=false;
       const max=livesFor(cur,lvOf(cur));
@@ -610,10 +852,23 @@ async function tapCard(i){
     },950);
   }
 }
+/* ごほうびペア：ハート+1 か ヒント */
+function goldReward(){
+  fireworks(14);chime([784,988,1175,1568]);
+  if(Math.random()<.5){
+    st.hp[cur]=(st.hp[cur]==null?livesFor(cur,lvOf(cur)):st.hp[cur])+1;
+    save('ea:st',st);toast('✨ ごほうび！ ハート +1 💖','gold');
+  }else{
+    toast('✨ ごほうび！ ヒント 🔍','gold');
+    setTimeout(()=>showHint(2),500);
+  }
+}
 async function clearBoard(){
   const got=st.dex[cur];
+  const beforeRows=doneRows(got);
   const fresh=boardMons.filter(m=>!got.includes(m));
   fresh.forEach(m=>got.push(m));
+  const newRows=doneRows(got).filter(r=>!beforeRows.includes(r));
   st.board[cur]=null;
   const lv=lvOf(cur), cap=capOf(cur);
   const top=lv>=cap;
@@ -621,7 +876,8 @@ async function clearBoard(){
   else st.lv[cur]=lv+1;
   st.hp[cur]=livesFor(cur,lvOf(cur));
   await save('ea:st',st);
-  chime([523,659,784,1046,1318]);confetti(top?110:70);buzz([40,40,160]);
+  chime([523,659,784,1046,1318]);confetti(top?110:70);fireworks(newRows.length?44:26);buzz([40,40,160]);
+  if(newRows.length)setTimeout(()=>chime([784,988,1175,1568,1976]),600);
   const ov=$('ov');
   ov.className='ov show win';
   $('ovIco').textContent=top?'👑':'🎉';
@@ -629,13 +885,14 @@ async function clearBoard(){
   $('ovSub').textContent=top
     ? `レベル${cap}を ${st.clears[cur]}かい クリア`
     : `つぎは レベル${st.lv[cur]}（${CARDS[st.lv[cur]-1]}まい）`;
-  $('ovMnote').textContent=fresh.length?`ずかんに ${fresh.length}たい ふえた！`:'';
+  $('ovMnote').textContent=(fresh.length?`ずかんに ${fresh.length}たい ふえた！`:'')+newRows.map(r=>`　🏅 ${THEMES[r].n} コンプリート！`).join('');
   $('ovMons').innerHTML=fresh.length?fresh.map(m=>`<span>${sp(m)}</span>`).join(''):'';
   $('ovBtn').textContent=top?'もう いちど レベル'+cap:'つぎへ';
   $('ovBtn').dataset.act='next';
   render();
 }
 async function failBoard(){
+  combo=0;
   st.hp[cur]=livesFor(cur,lvOf(cur));
   saveBoard();
   await save('ea:st',st);
@@ -668,11 +925,32 @@ function renderStatus(){
 }
 function renderDex(){
   const got=st.dex[cur]||[];
+  const rows=doneRows(got);
   $('dexTitle').textContent=`ずかん　${got.length} / ${TOTAL}`;
+  $('dexBadge').innerHTML=rows.map(r=>`<span>🏅 ${THEMES[r].n}</span>`).join('');
+  $('dexBadge').style.display=rows.length?'flex':'none';
   let h='';
-  for(let i=0;i<TOTAL;i++)h+=`<span class="cell ${got.includes(i)?'':'off'}">${sp(i)}</span>`;
+  for(let i=0;i<TOTAL;i++)h+=`<span class="cell ${got.includes(i)?'':'off'} ${rows.includes(Math.floor(i/10))?'done':''}" data-i="${i}">${sp(i)}</span>`;
   $('dexRow').innerHTML=h;
 }
+let dxI=0;
+function showMon(i){
+  dxI=((i%TOTAL)+TOTAL)%TOTAL;
+  const got=(st.dex[cur]||[]).includes(dxI), th=THEMES[Math.floor(dxI/10)], m=MON[dxI];
+  $('dxNo').textContent=`No.${String(dxI+1).padStart(3,'0')}`;
+  $('dxTh').textContent=`${th.ico} ${th.n}`;
+  $('dxRare').hidden=!isRareMon(dxI);
+  $('dxPic').className='pic'+(got?'':' unk');
+  $('dxPic').innerHTML=sp(dxI);
+  $('dxNm').textContent=got?m[0]:'？？？';
+  $('dxDs').textContent=got?m[1]:'まだ であっていないよ。えあわせで さがしてね！';
+  $('dexOv').classList.add('show');
+}
+$('dexRow').addEventListener('click',e=>{const c=e.target.closest('.cell');if(!c)return;tone(660,0,.07);showMon(+c.dataset.i);});
+$('dxClose').onclick=()=>$('dexOv').classList.remove('show');
+$('dxPrev').onclick=()=>{tone(520,0,.05);showMon(dxI-1);};
+$('dxNext').onclick=()=>{tone(620,0,.05);showMon(dxI+1);};
+$('dexOv').addEventListener('click',e=>{if(e.target.id==='dexOv')$('dexOv').classList.remove('show');});
 function render(){
   document.body.classList.toggle('kidB',cur===1);
   renderKids();renderStatus();renderDex();
@@ -685,6 +963,9 @@ function render(){
       ? `ルーレットを まわそう（レベル${lvOf(cur)}の つづき・${kept}くみ そろいずみ）`
       : `ルーレットを まわそう（つぎ レベル${lvOf(cur)}）`;
     if(!spinning)showResult();
+    const tot=(st.tidy[0]||0)+(st.tidy[1]||0), nxt=(Math.floor(tot/100)+1)*100, lk=THEMES[luckyRow()];
+    $('infoBar').innerHTML=`🍀 きょうの ラッキー：<b>${lk.ico} ${lk.n}</b>（この こが でやすいよ）<br>`
+      +`👫 きょうだい あわせて <b>${tot}こ</b> かたづけた！ ${nxt}こまで あと <b>${nxt-tot}こ</b>`;
   }
   else renderBoard();
 }
