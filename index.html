@@ -387,10 +387,10 @@ const MODES=[
   {id:'hard',  name:'きびしい', lives:[0,0,0,1,1,1,2,2,2]},
 ];
 /* ルーレットの マス。w＝おおきさ＝でやすさ。
-   ふつう：8こ 3/7 ／ 5こ 2/7 ／ 10こ 2/7（8こが いちばん おおい）
-   レア（b）：かたづけ8こ ＋ ボーナス（ヒント／ハート／レアモンスター）。ぜんぶで 1わり くらい */
-const TIDY=[{n:8,w:1},{n:5,w:1},{n:8,w:.3,b:'hint'},{n:8,w:1},{n:10,w:1},{n:8,w:1},{n:8,w:.3,b:'rare'},
-            {n:5,w:1},{n:10,w:1},{n:8,w:.3,b:'heart'}];
+   ふつう：20こ（いちばん おおい）／ 30こ（つぎ）／ 15こ（すくなめ）／ 1こ（げきレア！ 2%くらい）
+   レア（b）：かたづけ20こ ＋ ボーナス（ヒント／ハート／レアモンスター）。ぜんぶで 1わり くらい */
+const TIDY=[{n:15,w:.6},{n:20,w:1},{n:20,w:.3,b:'hint'},{n:30,w:1},{n:20,w:1},{n:1,w:.12},{n:30,w:1},
+            {n:20,w:.3,b:'rare'},{n:15,w:.6},{n:20,w:1},{n:20,w:.3,b:'heart'}];
 const BON={
   hint :{ico:'🔍',txt:'ヒント！ はじめに カードが すこし みえる'},
   heart:{ico:'💖',txt:'ハート +1！ ミスが 1かい ふえる'},
@@ -400,8 +400,8 @@ const isRareMon=i=>i%10===9;           /* 10ぴきめ（10れつめ）が レア
 const icoOf=t=>t.b?BON[t.b].ico:TICO[t.n];
 const colOf=t=>t.b?'#FFE07A':TCOL[t.n];
 const labOf=t=>t.n+'こ';
-const TCOL={3:'#FFE9A8',5:'#BFE8A8',8:'#BFDFFF',10:'#FFC98A'};
-const TICO={3:'🧸',5:'🧺',8:'🎒',10:'📦'};
+const TCOL={1:'#FF9EC4',15:'#BFE8A8',20:'#BFDFFF',30:'#FFC98A'};
+const TICO={1:'🌈',15:'🧺',20:'🎒',30:'📦'};
 const KIDCOL=['#FF7BA9','#3F9BFF'];
 
 let cfg={names:['おにいちゃん','いもうと'],mode:['normal','easy'],cap:[9,6],sound:true};
@@ -677,6 +677,7 @@ function spin(){
     if(cur===kid)showResult();
     chime(seg.t.b?[523,659,784,1046]:[523,784]);
     if(seg.t.b)confetti(40);
+    if(seg.t.n===1){fireworks(36);chime([784,988,1175,1568,1976]);toast('🌈 げきレア！ たったの 1こ！','gold');}
   },dur*1000+150);
 }
 /* ルーレットの けっかを がめんに だす（こうたい してから もどっても のこる） */
@@ -686,7 +687,7 @@ function showResult(){
     $('spin').classList.remove('hide');$('spin').disabled=false;$('spin').textContent='まわす';return;}
   $('spin').classList.add('hide');
   const n=typeof p==='object'?p.n:p, b=typeof p==='object'?p.b:null;
-  $('rIco').textContent=b?BON[b].ico:TICO[n];
+  $('rIco').textContent=b?BON[b].ico:(TICO[n]||'🎒');
   $('rTtl').textContent=`かたづけ ${n}こ`;
   const go=savedPairs(cur)
     ? `おわったら レベル${lvOf(cur)}の つづきから！`
@@ -703,9 +704,9 @@ async function cleaned(){
   const tb=(st.tidy[0]||0)+(st.tidy[1]||0);
   st.tidy[cur]+=n;
   const ta=(st.tidy[0]||0)+(st.tidy[1]||0);
-  if(Math.floor(ta/100)>Math.floor(tb/100)){
+  if(Math.floor(ta/300)>Math.floor(tb/300)){
     fireworks(40);chime([784,988,1175,1568,1976]);
-    toast(`きょうだいで ${Math.floor(ta/100)*100}こ！ すごい！`,'gold');
+    toast(`きょうだいで ${Math.floor(ta/300)*300}こ！ すごい！`,'gold');
   }
   setP(null);
   showResult();
@@ -963,7 +964,7 @@ function render(){
       ? `ルーレットを まわそう（レベル${lvOf(cur)}の つづき・${kept}くみ そろいずみ）`
       : `ルーレットを まわそう（つぎ レベル${lvOf(cur)}）`;
     if(!spinning)showResult();
-    const tot=(st.tidy[0]||0)+(st.tidy[1]||0), nxt=(Math.floor(tot/100)+1)*100, lk=THEMES[luckyRow()];
+    const tot=(st.tidy[0]||0)+(st.tidy[1]||0), nxt=(Math.floor(tot/300)+1)*300, lk=THEMES[luckyRow()];
     $('infoBar').innerHTML=`🍀 きょうの ラッキー：<b>${lk.ico} ${lk.n}</b>（この こが でやすいよ）<br>`
       +`👫 きょうだい あわせて <b>${tot}こ</b> かたづけた！ ${nxt}こまで あと <b>${nxt-tot}こ</b>`;
   }
